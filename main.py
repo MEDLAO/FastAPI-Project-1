@@ -13,8 +13,10 @@ def read_root():
 
 
 # Function to convert RGB to Hex
-def rgb_to_hex(rgb):
-    return "#{:02x}{:02x}{:02x}".format(*rgb)
+def rgb_to_hex(rgb_list):
+    """Convert an RGB list [r, g, b] to HEX format."""
+    r, g, b = rgb_list
+    return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
 
 @app.post("/dominant-color")
@@ -28,7 +30,7 @@ async def get_dominant_color(file: UploadFile = File(...)):
     dominant_color = color_thief.get_color(quality=1)
 
     # Convert RGB to Hexadecimal
-    hex_color = rgb_to_hex(dominant_color)
+    hex_color = type(dominant_color)
 
     return {
         "dominant_color_rgb": dominant_color,
@@ -58,7 +60,8 @@ async def extract_colors(
 
         return {
             "colors_extracted": len(colors),
-            "colors": colors
+            "colors": colors,
+            "palette": palette
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
