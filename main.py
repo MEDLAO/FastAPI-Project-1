@@ -1,10 +1,21 @@
-from fastapi import FastAPI, File, UploadFile, Query, HTTPException
+from fastapi import FastAPI, File, UploadFile, Query, HTTPException, Request
 from colorthief import ColorThief
+from fastapi.responses import JSONResponse
 import io
 import colorsys
 
 
 app = FastAPI()
+
+
+@app.middleware("http")
+async def validate_rapidapi_request(request: Request, call_next):
+    rapidapi_key = request.headers.get("X-RapidAPI-Key")
+
+    if not rapidapi_key:
+        return JSONResponse(status_code=403, content={"error": "Access restricted to RapidAPI users."})
+
+    return await call_next(request)
 
 
 @app.get("/")
