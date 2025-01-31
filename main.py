@@ -23,6 +23,11 @@ def read_root():
     return {"message": "Welcome!"}
 
 
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
+
 # Function to convert RGB to Hex
 def rgb_to_hex(rgb):
     """Convert an RGB list [r, g, b] to HEX format."""
