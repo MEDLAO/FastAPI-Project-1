@@ -10,6 +10,9 @@ app = FastAPI()
 
 @app.middleware("http")
 async def validate_rapidapi_request(request: Request, call_next):
+    if request.url.path == "/health":
+        return await call_next(request)
+
     rapidapi_key = request.headers.get("X-RapidAPI-Key")
 
     if not rapidapi_key:
