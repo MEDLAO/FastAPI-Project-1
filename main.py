@@ -13,14 +13,16 @@ def read_root():
 
 
 # Function to convert RGB to Hex
-def rgb_to_hex(rgb_list):
+def rgb_to_hex(rgb):
     """Convert an RGB list [r, g, b] to HEX format."""
-    r, g, b = rgb_list
-    return "#{:02x}{:02x}{:02x}".format(r, g, b)
+    return "#{:02x}{:02x}{:02x}".format(*rgb)
 
 
 @app.post("/dominant-color")
 async def get_dominant_color(file: UploadFile = File(...)):
+    """
+    Extract the dominant color from an uploaded image.
+    """
     # Read the uploaded file
     image_data = await file.read()
     image_file = io.BytesIO(image_data)
@@ -30,7 +32,9 @@ async def get_dominant_color(file: UploadFile = File(...)):
     dominant_color = color_thief.get_color(quality=1)
 
     # Convert RGB to Hexadecimal
-    hex_color = type(dominant_color)
+    hex_color = rgb_to_hex(dominant_color)
+    print(type(hex_color))
+    print(hex_color)
 
     return {
         "dominant_color_rgb": dominant_color,
@@ -55,20 +59,21 @@ async def extract_colors(
         color_thief = ColorThief(image_file)
         palette = color_thief.get_palette(color_count=count, quality=1)
 
+        palette = palette[:count]
+
         # Convert RGB colors to HEX
         colors = [{"rgb": color, "hex": rgb_to_hex(color)} for color in palette]
 
         return {
             "colors_extracted": len(colors),
-            "colors": colors,
-            "palette": palette
+            "colors": colors
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
 
 
 @app.get("/hex-to-rgb")
-def hex_to_rgb(hex: str = Query(..., description="HEX color string (e.g., #ff5733)")):
+def convert_hex_to_rgb(hex: str = Query(..., description="HEX color string (e.g., #ff5733)")):
     """Convert HEX to RGB."""
     try:
         # Remove the leading "#" if present
@@ -84,7 +89,7 @@ def hex_to_rgb(hex: str = Query(..., description="HEX color string (e.g., #ff573
 
 
 @app.get("/rgb-to-hex")
-def rgb_to_hex(
+def convert_rgb_to_hex(
     r: int = Query(..., ge=0, le=255, description="Red component (0–255)"),
     g: int = Query(..., ge=0, le=255, description="Green component (0–255)"),
     b: int = Query(..., ge=0, le=255, description="Blue component (0–255)")
@@ -92,7 +97,7 @@ def rgb_to_hex(
     """Convert RGB to HEX."""
     try:
         # Format RGB as HEX
-        hex_color = "#{:02x}{:02x}{:02x}".format(r, g, b)
+        hex_color = rgb_to_hex([r, g, b])
         return {"rgb": [r, g, b], "hex": hex_color}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -145,7 +150,13 @@ def harmonious_colors(
     hex: str = Query(..., description="Base color in HEX format (e.g., #ff5733)"),
     type: str = Query("analogous", description="Harmony type: analogous, complementary, triadic")
 ):
-    """Return harmonious colors with explanations."""
+    """
+    Return harmonious colors with explanations.
+
+    This endpoint generates color combinations based on color theory.
+    It applies different harmony rules (analogous, complementary, triadic)
+    to suggest aesthetically pleasing color palettes.
+    """
     try:
         colors = generate_harmonious_colors(hex, type)
 
