@@ -20,7 +20,19 @@ async def validate_rapidapi_request(request: Request, call_next):
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome!"}
+    welcome_message = (
+        "Welcome!"
+        "¡Bienvenido!"
+        "欢迎!"
+        "नमस्ते!"
+        "مرحبًا!"
+        "Olá!"
+        "Здравствуйте!"
+        "Bonjour!"
+        "বাংলা!"
+        "こんにちは!"
+    )
+    return {"message": welcome_message}
 
 
 @app.get("/health")
